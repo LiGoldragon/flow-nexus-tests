@@ -11,6 +11,7 @@ datom = ["dep:datom-codec", "dep:protos", "signal-flow-nexus/datom", "meta-signa
 [dependencies]
 flow-nexus-runtime = { path = "flow-nexus/crates/runtime" }
 flow-nexus-types = { path = "flow-nexus/crates/types" }
+flow-nexus-platform = { path = "flow-nexus/crates/platform" }
 signal-flow-nexus = { path = "signal-flow-nexus", features = [] }
 meta-signal-flow-nexus = { path = "meta-signal-flow-nexus", features = [] }
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "eb10157a0336e3aa2401e5b2046211fc8e736397", optional = true }

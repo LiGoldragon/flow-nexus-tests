@@ -4,7 +4,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-build.url = "github:LiGoldragon/rust-build/1bcdafd4590952f73fada56b0507c64192fd6327";
     rust-build.inputs.nixpkgs.follows = "nixpkgs";
-    flow = { url = "github:LiGoldragon/flow-nexus/a0874eae49589a4d26958655fffdf52e06189397"; flake = false; };
+    flow = { url = "github:LiGoldragon/flow-nexus/b5c97228b6c82c179a8781f5ff702b0827b7168e"; flake = false; };
     ordinary = { url = "github:LiGoldragon/signal-flow-nexus/8faf87334ff40a0d84884c04046b3c5d6d989887"; flake = false; };
     memory = { url = "github:LiGoldragon/memory/bfdde49897d060ce29f962ee35bdfaed3b50dd6b"; flake = false; };
     meta = { url = "github:LiGoldragon/meta-signal-flow-nexus/743900f3ea07f7722c066b7dbd271bd9dfab8308"; flake = false; };
@@ -74,6 +74,26 @@
         cargoArtifacts = null;
         doInstallCargoArtifacts = false;
         cargoExtraArgs = "--locked --test reservation -- --nocapture";
+        strictDeps = true;
+      };
+      platform = rust.craneLib.cargoTest {
+        inherit src;
+        pname = "flow-nexus-platform-tests";
+        version = "0.1.0";
+        cargoVendorDir = rust.craneLib.vendorCargoDeps { cargoLock = ./Cargo.lock; };
+        cargoArtifacts = null;
+        doInstallCargoArtifacts = false;
+        cargoExtraArgs = "--locked --test platform_entropy -- --nocapture";
+        strictDeps = true;
+      };
+      os-mint = rust.craneLib.cargoTest {
+        inherit src;
+        pname = "flow-nexus-os-mint-tests";
+        version = "0.1.0";
+        cargoVendorDir = rust.craneLib.vendorCargoDeps { cargoLock = ./Cargo.lock; };
+        cargoArtifacts = null;
+        doInstallCargoArtifacts = false;
+        cargoExtraArgs = "--locked --test identity_os -- --nocapture";
         strictDeps = true;
       };
       identity = rust.craneLib.cargoTest {

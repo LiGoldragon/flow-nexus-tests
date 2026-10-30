@@ -85,6 +85,7 @@ name = "flow-nexus-anatomy-tests"
 version = "0.1.0"
 dependencies = [
  "datom-codec",
+ "flow-nexus-platform",
  "flow-nexus-runtime",
  "flow-nexus-types",
  "memory",
@@ -97,9 +98,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "flow-nexus-platform"
+version = "1.0.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "flow-nexus-runtime"
 version = "1.0.0"
 dependencies = [
+ "flow-nexus-platform",
  "flow-nexus-types",
  "kameo",
  "memory",
