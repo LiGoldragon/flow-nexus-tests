@@ -2,7 +2,7 @@
 
 Immutable production targets are declared in flake.nix:
 
-- flow-nexus 1c71afad83210f2ffde072c1f65921637e72e035
+- flow-nexus f5ce26dd62565745caee85c81005f12d383c98c6
 - signal-flow-nexus 8faf87334ff40a0d84884c04046b3c5d6d989887
 - meta-signal-flow-nexus 743900f3ea07f7722c066b7dbd271bd9dfab8308
 
@@ -28,3 +28,7 @@ Identity fixtures were authored independently following a read-only audit. The i
 ## Authoritative Datom correction
 
 Datom eb10157a0336e3aa2401e5b2046211fc8e736397 (0.32.3) and Ethos Zero b8052c2404374265dfcddbde83fef76977f78acd (19.0.1) fix the transparent tuple-newtype projection upstream. No local workaround or oracle change. Full schema check now passes all20 tests (6 Datom,3 identity,4 Memory,3 minimal-newtype,4 static schema): /nix/store/smg81m70aaqd4vd9x2g7cw9qsap5nvl4-flow-nexus-schema-tests-test-0.1.0. Normal binary graph also passes /nix/store/201kq8c5b2v1cbn59258ii08kfrr91a1-flow-nexus-normal-closure-build-0.1.0. These outputs target the three immutable dependency-upgrade commits above; later structural/OriginAdmission changes need their own tests.
+
+## Structural identity/evidence slice
+
+Current targets use main f5ce26d with the same upgraded wire commits. Full schema suite now passes28 tests:6 Datom,11 identity/structural cases,4 actual Memory,3 minimal-newtype,4 static schema. Output /nix/store/sp2dpzncqxrmwmlpy7hczm6mf26m42zx-flow-nexus-schema-tests-test-0.1.0. New positives accept the intentional same-flow reservation/Flow link and distinct admission/launch ids linked by OriginAdmissionId. Existing-state collision, cross-admission reuse, locator mismatch, prepared/no-resource contradiction and configured alphabet domain are rejected. Fresh tester authored the positive/collision/admission fixtures; integrating flow reviewed and corrected invalid drafts before running, and added locator/phase/alphabet cases. These are structural checks, not external witness authority or atomic allocator acceptance. Atomic reservation/allocation is not yet implemented.

@@ -4,7 +4,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     rust-build.url = "github:LiGoldragon/rust-build/1bcdafd4590952f73fada56b0507c64192fd6327";
     rust-build.inputs.nixpkgs.follows = "nixpkgs";
-    flow = { url = "github:LiGoldragon/flow-nexus/1c71afad83210f2ffde072c1f65921637e72e035"; flake = false; };
+    flow = { url = "github:LiGoldragon/flow-nexus/f5ce26dd62565745caee85c81005f12d383c98c6"; flake = false; };
     ordinary = { url = "github:LiGoldragon/signal-flow-nexus/8faf87334ff40a0d84884c04046b3c5d6d989887"; flake = false; };
     memory = { url = "github:LiGoldragon/memory/bfdde49897d060ce29f962ee35bdfaed3b50dd6b"; flake = false; };
     meta = { url = "github:LiGoldragon/meta-signal-flow-nexus/743900f3ea07f7722c066b7dbd271bd9dfab8308"; flake = false; };
