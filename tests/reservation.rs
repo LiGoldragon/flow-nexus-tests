@@ -184,7 +184,7 @@ async fn restart_proves_delayed_old_dispatch_cannot_commit_after_final_absence()
     assert!(matches!(port.probe(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::Pending)));
     let recovered = port.restart().await.unwrap();
     assert!(matches!(recovered.resolve(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::AbsentFinal)));
-    assert!(matches!(port.submit(prepared).await, Err(ActorTransportFailure::MutationUncertain)));
+    assert!(matches!(port.submit(prepared).await, Err(ActorTransportFailure::NotAdmitted)));
     assert!(matches!(recovered.resolve(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::AbsentFinal)));
     let old_prepared = port.prepare(request);
     assert!(matches!(recovered.as_ref().submit(old_prepared).await, Err(ActorTransportFailure::WrongActor)));
@@ -197,4 +197,48 @@ fn actual_memory_kernel_refuses_a_second_writer_for_the_same_store() {
     let second = MemoryStore::open(StoreLayout { path: fixture.path.clone(), table_name: TableName("rows"),
         schema: Schema { version: SchemaVersion::new(1) } });
     assert!(second.is_err(), "same Memory store must not acquire another independent writer");
+}
+
+#[tokio::test]
+async fn cancelling_receive_future_preserves_committed_memory_and_actor_liveness() {
+    let fixture = ReservationFixture::named("cancelReceiver");
+    let port = MemoryPort::from(fixture.seeded(0));
+    let submission = port.submit(port.prepare(fixture.request(0, "cancel"))).await.unwrap();
+    let ticket = submission.ticket();
+    let receive = submission.receive();
+    drop(receive);
+    assert!(matches!(ticket.resolve().await.unwrap(), MemoryReply::Resolution(ReservationResolution::Matched(_))));
+    assert!(matches!(port.request(MemoryCommand::Read(ReadSelector::All)).await.unwrap(), MemoryReply::Records(rows) if rows.len() == 3));
+}
+
+#[tokio::test]
+async fn cancelling_before_enqueue_stays_pending_until_old_actor_is_retired() {
+    let fixture = ReservationFixture::named("cancelBeforeEnqueue");
+    let port = MemoryPort::from(fixture.seeded(0));
+    let prepared = port.prepare(fixture.request(0, "before"));
+    let target = prepared.target();
+    let enqueue = port.submit(prepared);
+    drop(enqueue);
+    assert!(matches!(port.probe(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::Pending)));
+    let recovered = port.restart().await.unwrap();
+    assert!(matches!(recovered.resolve(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::AbsentFinal)));
+}
+
+#[tokio::test]
+async fn replacing_file_at_same_path_cannot_mint_a_recovered_capability() {
+    let fixture = ReservationFixture::named("replacedStore");
+    let port = MemoryPort::from(fixture.seeded(0));
+    let original = fixture.path.with_extension("original.redb");
+    std::fs::rename(&fixture.path, &original).unwrap();
+    let mut replacement = MemoryStore::open(StoreLayout { path: fixture.path.clone(), table_name: TableName("rows"),
+        schema: Schema { version: SchemaVersion::new(1) } }).unwrap();
+    replacement.mutate(&MutationBatch(vec![Mutation::Put(Record::RequestAllocator(RequestAllocator { request_id: RequestId(99) }))])).unwrap();
+    drop(replacement);
+    assert!(matches!(port.restart().await, Err(flow_nexus_runtime::store::StoreFailure::IdentityChanged)));
+    let replacement = MemoryStore::open(StoreLayout { path: fixture.path.clone(), table_name: TableName("rows"),
+        schema: Schema { version: SchemaVersion::new(1) } }).unwrap();
+    assert_eq!(replacement.snapshot().unwrap().records, vec![Record::RequestAllocator(RequestAllocator { request_id: RequestId(99) })]);
+    let original_store = MemoryStore::open(StoreLayout { path: original, table_name: TableName("rows"),
+        schema: Schema { version: SchemaVersion::new(1) } }).unwrap();
+    assert_eq!(original_store.snapshot().unwrap().records, vec![Record::RequestAllocator(RequestAllocator { request_id: RequestId(0) })]);
 }
