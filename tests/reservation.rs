@@ -2,8 +2,9 @@
 mod fixture;
 use fixture::{FixtureFactory, IdentityFixture};
 use flow_nexus_runtime::{
+    bootstrap::Initializable,
     memory_actor::{ActorTransportFailure, MemoryAccessible, MemoryCommand, MemoryPort, MemoryReply,
-        MemoryRestartable, OrderedResolvable, RecoveredResolvable, ReservationControlled,
+        MemoryInterruptible, MemoryRestartable, OrderedResolvable, RecoveredResolvable, ReservationControlled,
         TargetedReservation, TrackedSubmission},
     reservation::{Reservable, ReservationResolvable},
     store::{MemoryStore, Openable, Readable, StoreLayout, TableName, Writable},
@@ -23,6 +24,7 @@ trait ReservationFixtures: Sized {
     fn store(&self) -> MemoryStore;
     fn seeded(&self, next: i64) -> MemoryStore;
     fn request(&self, id: i64, flow_id: &str) -> ReserveLaunch;
+    fn configuration(&self) -> flow_nexus_types::memory::ConfigurationRecord;
 }
 impl ReservationFixtures for ReservationFixture {
     fn named(name: &str) -> Self {
@@ -36,8 +38,12 @@ impl ReservationFixtures for ReservationFixture {
     }
     fn seeded(&self, next: i64) -> MemoryStore {
         let mut store = self.store();
-        store.mutate(&MutationBatch(vec![Mutation::Put(Record::RequestAllocator(
-            RequestAllocator { request_id: RequestId(next) }))])).unwrap();
+        assert_eq!(store.initialize(&self.configuration()).unwrap(),
+            flow_nexus_types::evidence::InitializationOutcome::Initialized);
+        if next != 0 {
+            store.mutate(&MutationBatch(vec![Mutation::Put(Record::RequestAllocator(
+                RequestAllocator { request_id: RequestId(next) }))])).unwrap();
+        }
         store
     }
     fn request(&self, id: i64, flow_id: &str) -> ReserveLaunch {
@@ -46,6 +52,30 @@ impl ReservationFixtures for ReservationFixture {
             resolved_launch: attempt.resolved_launch, creation_intent: attempt.creation_intent,
             origin_admission_id_option: None }
     }
+    fn configuration(&self) -> flow_nexus_types::memory::ConfigurationRecord {
+        let snapshot = self.identity.resolved(self.identity.address.clone());
+        let assignment = flow_nexus_types::LayerAssignment {
+            aspect: self.identity.address.aspect.clone(), layer: self.identity.address.layer.clone(),
+            model_profile_name: snapshot.model_profile.model_profile_name.clone(),
+        };
+        flow_nexus_types::memory::ConfigurationRecord {
+            configuration: flow_nexus_types::Configuration {
+                metaflow_name: flow_nexus_types::MetaflowName("test".into()),
+                memory_path: flow_nexus_types::MemoryPath(self.path.to_str().unwrap().into()),
+                socket_configuration: flow_nexus_types::SocketConfiguration {
+                    ordinary_socket_path: flow_nexus_types::OrdinarySocketPath("/ordinary".into()),
+                    meta_socket_path: flow_nexus_types::MetaSocketPath("/meta".into()),
+                },
+                declaration_vector: vec![snapshot.declaration], layer_assignment_vector: vec![assignment],
+                model_profile_vector: vec![snapshot.model_profile], harness_profile_vector: vec![snapshot.harness_profile],
+                module_source_vector: vec![], identity_policy: snapshot.identity_policy,
+                capsule_configuration: snapshot.capsule_configuration,
+                security_configuration: flow_nexus_types::SecurityConfiguration { owner_uid: flow_nexus_types::OwnerUid(0) },
+            },
+            meta_configure_occurred: flow_nexus_types::evidence::MetaConfigureOccurred(false),
+        }
+    }
+
 }
 
 #[test]
@@ -55,7 +85,7 @@ fn actual_store_reserves_all_three_rows_and_matches_only_exact_payload() {
     let request = fixture.request(0, "atomaa");
     assert_eq!(store.reserve(&request).unwrap(), ReservationOutcome::Reserved(RequestId(0)));
     let state = store.snapshot().unwrap();
-    assert_eq!(state.records.len(), 3);
+    assert_eq!(state.records.len(), 4);
     assert!(state.records.iter().any(|row| matches!(row, Record::RequestAllocator(v) if v.request_id == RequestId(1))));
     assert!(state.records.iter().any(|row| matches!(row, Record::LaunchAttempt(v) if v.request_id == RequestId(0) && v.flow_id == request.flow_id)));
     assert!(state.records.iter().any(|row| matches!(row, Record::AddressReservation(v) if v.request_id == RequestId(0) && v.flow_id == request.flow_id)));
@@ -208,7 +238,7 @@ async fn cancelling_receive_future_preserves_committed_memory_and_actor_liveness
     let receive = submission.receive();
     drop(receive);
     assert!(matches!(ticket.resolve().await.unwrap(), MemoryReply::Resolution(ReservationResolution::Matched(_))));
-    assert!(matches!(port.request(MemoryCommand::Read(ReadSelector::All)).await.unwrap(), MemoryReply::Records(rows) if rows.len() == 3));
+    assert!(matches!(port.request(MemoryCommand::Read(ReadSelector::All)).await.unwrap(), MemoryReply::Records(rows) if rows.len() == 4));
 }
 
 #[tokio::test]
@@ -240,5 +270,105 @@ async fn replacing_file_at_same_path_cannot_mint_a_recovered_capability() {
     assert_eq!(replacement.snapshot().unwrap().records, vec![Record::RequestAllocator(RequestAllocator { request_id: RequestId(99) })]);
     let original_store = MemoryStore::open(StoreLayout { path: original, table_name: TableName("rows"),
         schema: Schema { version: SchemaVersion::new(1) } }).unwrap();
-    assert_eq!(original_store.snapshot().unwrap().records, vec![Record::RequestAllocator(RequestAllocator { request_id: RequestId(0) })]);
+    assert!(original_store.snapshot().unwrap().records.contains(&Record::RequestAllocator(RequestAllocator { request_id: RequestId(0) })));
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn cancellation_while_mailbox_is_full_has_no_ticket_or_final_absence() {
+    use std::{future::Future, task::{Context, Poll, Waker}};
+    let fixture = ReservationFixture::named("cancelDuringEnqueue");
+    let port = MemoryPort::from(fixture.seeded(0));
+    // Pinned Kameo0.22.2 default bounded capacity is64. On this current-thread executor,
+    // manually polling readonly asks fills it without letting the actor run.
+    let mut context = Context::from_waker(Waker::noop());
+    let mut reads = Vec::new();
+    for _ in 0..64 {
+        let mut read = Box::pin(port.request(MemoryCommand::Read(ReadSelector::All)));
+        assert!(matches!(read.as_mut().poll(&mut context), Poll::Pending));
+        reads.push(read);
+    }
+    let prepared = port.prepare(fixture.request(0, "midway"));
+    let target = prepared.target();
+    let mut sending = Box::pin(port.submit(prepared));
+    // submit's only await before ticket construction is mailbox send.
+    assert!(matches!(sending.as_mut().poll(&mut context), Poll::Pending));
+    drop(sending);
+    drop(reads);
+    assert!(matches!(port.probe(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::Pending)));
+    let recovered = port.restart().await.unwrap();
+    assert!(matches!(recovered.resolve(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::AbsentFinal)));
+}
+
+#[tokio::test(flavor = "current_thread")]
+async fn actor_death_before_processing_reply_remains_uncertain_until_recovery() {
+    use std::{future::Future, task::{Context, Poll, Waker}};
+    let fixture = ReservationFixture::named("deathBeforeReply");
+    let port = MemoryPort::from(fixture.seeded(0));
+    let prepared = port.prepare(fixture.request(0, "deathx"));
+    let target = prepared.target();
+    let mut context = Context::from_waker(Waker::noop());
+    let mut sending = Box::pin(port.submit(prepared));
+    let submission = match sending.as_mut().poll(&mut context) {
+        Poll::Ready(Ok(submission)) => submission,
+        _ => panic!("empty mailbox must admit before actor execution on this current-thread executor"),
+    };
+    drop(sending);
+    // Spawn does not synchronously poll actor tasks; interrupt marks its abort before yielding.
+    port.interrupt().await;
+    assert!(matches!(submission.receive().await, Err(ActorTransportFailure::MutationUncertain)));
+    let recovered = port.restart().await.unwrap();
+    assert!(matches!(recovered.resolve(&target).await.unwrap(), MemoryReply::Resolution(ReservationResolution::AbsentFinal)));
+}
+
+#[test]
+fn bootstrap_commits_configuration_and_allocator_together_and_never_resets_existing_state() {
+    use flow_nexus_types::evidence::InitializationOutcome;
+    let fixture = ReservationFixture::named("bootstrap");
+    let mut store = fixture.store();
+    let configuration = fixture.configuration();
+    assert_eq!(store.initialize(&configuration).unwrap(), InitializationOutcome::Initialized);
+    assert_eq!(store.snapshot().unwrap().records.len(), 2);
+    assert_eq!(store.reserve(&fixture.request(0, "bootaa")).unwrap(), ReservationOutcome::Reserved(RequestId(0)));
+    let before = store.snapshot().unwrap();
+    assert_eq!(store.initialize(&configuration).unwrap(), InitializationOutcome::ExistingState);
+    assert_eq!(store.snapshot().unwrap(), before);
+}
+
+#[test]
+fn invalid_initial_configuration_cannot_leave_an_allocator_behind() {
+    use flow_nexus_types::evidence::InitializationOutcome;
+    let fixture = ReservationFixture::named("invalidBootstrap");
+    let mut store = fixture.store();
+    let mut configuration = fixture.configuration();
+    configuration.configuration.identity_policy.identity_alphabet.0 = "aa".into();
+    assert_eq!(store.initialize(&configuration).unwrap(), InitializationOutcome::Refused(Invariant::InvalidAlphabet));
+    assert!(store.snapshot().unwrap().records.is_empty());
+}
+
+#[test]
+fn seeded_counter_alone_cannot_admit_and_stale_configuration_snapshot_cannot_reserve() {
+    let fixture = ReservationFixture::named("configurationRequired");
+    let mut store = fixture.store();
+    store.mutate(&MutationBatch(vec![Mutation::Put(Record::RequestAllocator(RequestAllocator { request_id: RequestId(0) }))])).unwrap();
+    let before = store.snapshot().unwrap();
+    assert_eq!(store.reserve(&fixture.request(0, "cfgreq")).unwrap(), ReservationOutcome::ConfigurationUnavailable);
+    assert_eq!(store.snapshot().unwrap(), before);
+    drop(store);
+    let fixture = ReservationFixture::named("staleSnapshot");
+    let mut store = fixture.seeded(0);
+    let before = store.snapshot().unwrap();
+    let mut request = fixture.request(0, "stalea");
+    request.resolved_launch.model_profile.tokens = flow_nexus_types::Tokens(99);
+    assert_eq!(store.reserve(&request).unwrap(), ReservationOutcome::Refused(Invariant::SnapshotMismatch(RecordKey::LaunchAttempt(RequestId(0)))));
+    assert_eq!(store.snapshot().unwrap(), before);
+}
+
+#[tokio::test]
+async fn actual_actor_bootstrap_is_one_typed_transition_before_reservation() {
+    let fixture = ReservationFixture::named("actorBootstrap");
+    let port = MemoryPort::from(fixture.store());
+    assert!(matches!(port.request(MemoryCommand::InitializeConfiguration(fixture.configuration())).await.unwrap(),
+        MemoryReply::Initialization(flow_nexus_types::evidence::InitializationOutcome::Initialized)));
+    let reply = port.submit(port.prepare(fixture.request(0, "bootac"))).await.unwrap().receive().await.unwrap();
+    assert!(matches!(reply, MemoryReply::Reservation(ReservationOutcome::Reserved(RequestId(0)))));
 }
