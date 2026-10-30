@@ -58,17 +58,17 @@
     "flow": {
       "flake": false,
       "locked": {
-        "lastModified": 1793400014,
-        "narHash": "sha256-YX+F64cUi8s+OTfOHf8afdB/PUeaaR2miXLrBlE3xg8=",
+        "lastModified": 1793400373,
+        "narHash": "sha256-m1txl5asa7wI8AyXyJrKzOszUyZ8+9lJIqaoPrEo6j4=",
         "owner": "LiGoldragon",
         "repo": "flow-nexus",
-        "rev": "b161702b9fe9fc678e4a55e81be9341b076fa30f",
+        "rev": "1c71afad83210f2ffde072c1f65921637e72e035",
         "type": "github"
       },
       "original": {
         "owner": "LiGoldragon",
         "repo": "flow-nexus",
-        "rev": "b161702b9fe9fc678e4a55e81be9341b076fa30f",
+        "rev": "1c71afad83210f2ffde072c1f65921637e72e035",
         "type": "github"
       }
     },
@@ -92,17 +92,17 @@
     "meta": {
       "flake": false,
       "locked": {
-        "lastModified": 1793399496,
-        "narHash": "sha256-fJ8ufxQlNRe4ErZrBLNjtfKvNdEgVPs5Nl+ReQfTmYQ=",
+        "lastModified": 1793400377,
+        "narHash": "sha256-QoFaAb5Z4W5hih6ZAr0prFdzeWjG8wGWYWGC04TQq4A=",
         "owner": "LiGoldragon",
         "repo": "meta-signal-flow-nexus",
-        "rev": "7d47476a61e3a5ec7b9b813a910a6c40798ba4bf",
+        "rev": "743900f3ea07f7722c066b7dbd271bd9dfab8308",
         "type": "github"
       },
       "original": {
         "owner": "LiGoldragon",
         "repo": "meta-signal-flow-nexus",
-        "rev": "7d47476a61e3a5ec7b9b813a910a6c40798ba4bf",
+        "rev": "743900f3ea07f7722c066b7dbd271bd9dfab8308",
         "type": "github"
       }
     },
@@ -125,17 +125,17 @@
     "ordinary": {
       "flake": false,
       "locked": {
-        "lastModified": 1793398374,
-        "narHash": "sha256-aGrU1xLmdVHtpvvGDP317vQWJa8hhQx1I+vhDrLEwb4=",
+        "lastModified": 1793400375,
+        "narHash": "sha256-E+4fy9E3pvbPWfxMDDk1xdVSZu/mVhmABkE3IOlpCEo=",
         "owner": "LiGoldragon",
         "repo": "signal-flow-nexus",
-        "rev": "11734f0502586378c2b055e51e81b8c4f9e6d1fd",
+        "rev": "8faf87334ff40a0d84884c04046b3c5d6d989887",
         "type": "github"
       },
       "original": {
         "owner": "LiGoldragon",
         "repo": "signal-flow-nexus",
-        "rev": "11734f0502586378c2b055e51e81b8c4f9e6d1fd",
+        "rev": "8faf87334ff40a0d84884c04046b3c5d6d989887",
         "type": "github"
       }
     },
