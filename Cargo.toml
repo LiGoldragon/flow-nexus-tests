@@ -9,6 +9,7 @@ default = []
 datom = ["dep:datom-codec", "dep:protos", "signal-flow-nexus/datom", "meta-signal-flow-nexus/datom", "flow-nexus-types/datom"]
 
 [dependencies]
+flow-nexus-runtime = { path = "flow-nexus/crates/runtime" }
 flow-nexus-types = { path = "flow-nexus/crates/types" }
 signal-flow-nexus = { path = "signal-flow-nexus", features = [] }
 meta-signal-flow-nexus = { path = "meta-signal-flow-nexus", features = [] }
@@ -22,3 +23,5 @@ protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e7
 
 memory = { git = "https://github.com/LiGoldragon/memory", rev = "bfdde49897d060ce29f962ee35bdfaed3b50dd6b" }
 redb = "4"
+
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
