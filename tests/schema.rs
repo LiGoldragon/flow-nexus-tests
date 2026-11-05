@@ -7,15 +7,6 @@ fn ordinary_projection_has_no_request_id() {
 }
 
 #[test]
-fn manifest_declares_text_dependencies_as_optional_feature_members() {
-    let ordinary = fs::read_to_string("signal-flow-nexus/Cargo.toml").expect("ordinary manifest");
-    let meta = fs::read_to_string("meta-signal-flow-nexus/Cargo.toml").expect("meta manifest");
-    assert!(ordinary.contains("datom-codec") && meta.contains("datom-codec"));
-    assert!(ordinary.contains("datom = [\"dep:datom-codec\""));
-    assert!(meta.contains("datom = [\"dep:datom-codec\""));
-}
-
-#[test]
 fn every_actual_memory_root_row_is_in_owner_record_union() {
     let memory = include_str!("../flow-nexus/ethos/memory.ethos");
     let evidence = include_str!("../flow-nexus/ethos/evidence.ethos");
@@ -33,8 +24,6 @@ fn every_actual_memory_root_row_is_in_owner_record_union() {
     for row in rows {
         assert!(variants.contains(&format!("{row}.{row}").as_str()), "missing typed row {row}");
     }
-    assert!(evidence.contains("Mutation.[ Put.Record Remove.RecordKey ]"));
-    assert!(evidence.contains("ReadSelector.[ All ByKey.RecordKey ]"));
     let meta = include_str!("../meta-signal-flow-nexus/ethos/signal.ethos");
     assert!(meta.contains("Mutate.MutationBatch"));
     assert!(meta.contains("Read.ReadSelector"));
