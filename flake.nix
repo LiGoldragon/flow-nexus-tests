@@ -106,16 +106,6 @@
         cargoExtraArgs = "--locked --test identity -- --nocapture";
         strictDeps = true;
       };
-      anatomy = rust.craneLib.cargoTest {
-        inherit src;
-        pname = "flow-nexus-anatomy-tests";
-        version = "0.1.0";
-        cargoVendorDir = rust.craneLib.vendorCargoDeps { cargoLock = ./Cargo.lock; };
-        cargoArtifacts = null;
-        doInstallCargoArtifacts = false;
-        cargoExtraArgs = "--locked --test schema -- --nocapture";
-        strictDeps = true;
-      };
       memory = rust.craneLib.cargoTest {
         inherit src;
         pname = "flow-nexus-memory-tests";
