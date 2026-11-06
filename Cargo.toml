@@ -6,7 +6,7 @@ publish = false
 
 [features]
 default = []
-datom = ["dep:datom-codec", "dep:protos", "signal-flow-nexus/datom", "meta-signal-flow-nexus/datom", "flow-nexus-types/datom"]
+datom = ["dep:datom-codec", "dep:protos", "signal-flow-nexus/datom", "meta-signal-flow-nexus/datom", "flow-nexus-types/datom", "flow-nexus-runtime/datom"]
 
 [dependencies]
 flow-nexus-runtime = { path = "flow-nexus/crates/runtime" }

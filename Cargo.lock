@@ -108,6 +108,7 @@ dependencies = [
 name = "flow-nexus-runtime"
 version = "1.1.0"
 dependencies = [
+ "datom-codec",
  "flow-nexus-platform",
  "flow-nexus-types",
  "kameo",
