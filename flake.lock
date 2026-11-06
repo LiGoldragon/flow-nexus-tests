@@ -58,11 +58,11 @@
     "flow": {
       "flake": false,
       "locked": {
-        "lastModified": 1793403578,
-        "narHash": "sha256-TIHiyvRRxXFj4c7IudWtACvt2bTQVQspkKfmMj8EnsQ=",
+        "lastModified": 1793988777,
+        "narHash": "sha256-tJt2B+Z8Wf/UUqkL2f5g4T17Gygh8ED2oCWNWZaVoDY=",
         "owner": "LiGoldragon",
         "repo": "flow-nexus",
-        "rev": "b5c97228b6c82c179a8781f5ff702b0827b7168e",
+        "rev": "8fa70c2f26fbbdc31855f38b46f7774e80abe730",
         "type": "github"
       },
       "original": {
@@ -90,11 +90,11 @@
     "meta": {
       "flake": false,
       "locked": {
-        "lastModified": 1793400377,
-        "narHash": "sha256-QoFaAb5Z4W5hih6ZAr0prFdzeWjG8wGWYWGC04TQq4A=",
+        "lastModified": 1793988792,
+        "narHash": "sha256-GcGykuAR0Ao3OxaoH+a8Z/KRS1mxAhJlONvGAFMYcqU=",
         "owner": "LiGoldragon",
         "repo": "meta-signal-flow-nexus",
-        "rev": "743900f3ea07f7722c066b7dbd271bd9dfab8308",
+        "rev": "87ac1e1e740b8d3ff388d3b834e564fc2b592414",
         "type": "github"
       },
       "original": {
@@ -122,11 +122,11 @@
     "ordinary": {
       "flake": false,
       "locked": {
-        "lastModified": 1793400375,
-        "narHash": "sha256-E+4fy9E3pvbPWfxMDDk1xdVSZu/mVhmABkE3IOlpCEo=",
+        "lastModified": 1793988787,
+        "narHash": "sha256-aNCStWa3YvmzEgrriF0jbnBj640/+UJ0cnJ1kU8XcwI=",
         "owner": "LiGoldragon",
         "repo": "signal-flow-nexus",
-        "rev": "8faf87334ff40a0d84884c04046b3c5d6d989887",
+        "rev": "70848f4ceecb90071d3ae12d8f88d164bd5f3a93",
         "type": "github"
       },
       "original": {

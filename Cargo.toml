@@ -14,13 +14,13 @@ flow-nexus-types = { path = "flow-nexus/crates/types" }
 flow-nexus-platform = { path = "flow-nexus/crates/platform" }
 signal-flow-nexus = { path = "signal-flow-nexus", features = [] }
 meta-signal-flow-nexus = { path = "meta-signal-flow-nexus", features = [] }
-datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "eb10157a0336e3aa2401e5b2046211fc8e736397", optional = true }
-protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e73ead59bc0c2b97529b8ac32d3", optional = true }
+datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "eabead48b31e8d4f429d7fb156dd18548bbd79c1", optional = true }
+protos = { git = "https://github.com/LiGoldragon/protos", rev = "3c7ade3", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
 
 [dev-dependencies]
-datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "eb10157a0336e3aa2401e5b2046211fc8e736397" }
-protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e73ead59bc0c2b97529b8ac32d3" }
+datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "eabead48b31e8d4f429d7fb156dd18548bbd79c1" }
+protos = { git = "https://github.com/LiGoldragon/protos", rev = "3c7ade3" }
 
 memory = { git = "https://github.com/LiGoldragon/memory", rev = "bfdde49897d060ce29f962ee35bdfaed3b50dd6b" }
 redb = "4"
