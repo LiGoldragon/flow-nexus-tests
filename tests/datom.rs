@@ -10,7 +10,7 @@ use signal_flow_nexus::{Launch_Data, Query, Send_Data, Response as OrdinaryRespo
 struct FixtureBudget { budget: Budget }
 impl Default for FixtureBudget {
     fn default() -> Self {
-        Self { budget: Budget { remaining: 1 << 20, reader: ReaderBudget { remaining: 1 << 20 }, depth: 0, maximum_depth: 256 } }
+        Self { budget: Budget { remaining: 1 << 20, reader: ReaderBudget::try_from(1 << 20).expect("bounded reader budget"), depth: 0, maximum_depth: 256 } }
     }
 }
 trait Witnessing {

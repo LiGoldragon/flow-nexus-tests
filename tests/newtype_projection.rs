@@ -19,7 +19,7 @@ fn transparent_topic_writer_is_bare_scalar() {
 fn parser_accepts_transparent_topic() {
     let mut topic_budget = Budget {
         remaining: 1 << 20,
-        reader: ReaderBudget { remaining: 1 << 20 },
+        reader: ReaderBudget::try_from(1 << 20).expect("bounded reader budget"),
         depth: 0,
         maximum_depth: 256,
     };
@@ -32,7 +32,7 @@ fn parser_accepts_transparent_topic() {
 fn parser_accepts_transparent_address_position() {
     let mut address_budget = Budget {
         remaining: 1 << 20,
-        reader: ReaderBudget { remaining: 1 << 20 },
+        reader: ReaderBudget::try_from(1 << 20).expect("bounded reader budget"),
         depth: 0,
         maximum_depth: 256,
     };
